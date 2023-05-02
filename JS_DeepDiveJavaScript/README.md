@@ -1,1 +1,1 @@
-<img src="https://velog.velcdn.com/images/sarang_daddy/post/e26f0030-6050-417a-95ba-b8d6461459aa/image.png" width="70%"/>
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/c65493c1-9b4c-40d1-af42-1139fda69e31/image.png" width="70%"/>
