@@ -15,13 +15,13 @@
   이 중 `단일책임 원칙`을 반영하고자 한다면 컴포넌트는 이상적으로는 한 번에 한 가지 일만 해야 한다.  
   만약 컴포넌트가 점점 커진다면 작은 하위 컴포넌트로 쪼개져야 한다.
 - CSS  
-  : class 선택자를 무엇으로 만들지 생각해 봅시다. (실제 컴포넌트들은 약간 좀 더 세분되어 있습니다.)
+  : class 선택자를 무엇으로 만들지 생각해 보자.
 - Design  
-  : 디자인 계층을 어떤 식으로 구성할 지 생각해 봅시다.
+  : 디자인 계층을 어떤 식으로 구성할 지 생각해 보자.
 
 <img src=https://velog.velcdn.com/images/sarang_daddy/post/b5c2270f-5fac-4bb2-a3f5-f40aa2230211/image.png width="50%">
 
-</br>
+### 쪼개진 컴포넌트 계층
 
 - FilterableProductTable
   - SearchBar
@@ -29,7 +29,7 @@
     - ProductCategoryRow
     - ProductRow
 
-## 2. React호 정적인 버번을 먼저 구현하기
+## 2. React로 정적인 버전을 먼저 구현하기
 
 앱을 만들 때 계층 구조에 따라 상층부에 있는 컴포넌트부터 `하향식(top-down)`으로 만들거나  
 하층부에 있는 컴포넌트부터 `상향식(bottom-up)`으로 만들 수 있다.  
