@@ -1,5 +1,3 @@
-# 프론트엔드 개발에 대한 스터디 자료를 저장하는 레포지토리.
-
 ![header](https://capsule-render.vercel.app/api?type=waving&color=auto&height=250&section=header&text=sarang_daddy's%20Study%20Repository%20&fontSize=40&animation=fadeIn&fontAlignY=38&desc=Learning%20about%20Front-end%20technology&descAlignY=51&descAlign=66)
 
 ## <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=JavaScript&logoColor=white"/>
