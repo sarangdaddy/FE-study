@@ -680,3 +680,381 @@ function PlaceTree({ id, parentId, placesById, onComplete }) {
   );
 }
 ```
+
+# 컴포넌트 간의 state 공유
+
+두 컴포넌트의 state가 항상 함께 변경되기를 원할 때가 있다.  
+그럴때는 두 컴포넌트에서 state를 제거하고 가까운 부모로 이동한 다음 props를 통해 전달한다.  
+이를 state 끌어올리기하고 한다.
+
+## 예제로 알아보는 state 끌어올리기
+
+- Accordion (부모 컴포넌트)가 두 개의 Panel(자식 컴포넌트)를 렌더링한다고 생각해보자.
+- 각 Panel 컴포넌트는 표시 여부를 결정하는 불리언 타입 isActive state를 가진다.
+
+```jsx
+import { useState } from "react";
+
+function Panel({ title, children }) {
+  const [isActive, setIsActive] = useState(false);
+  return (
+    <section className="panel">
+      <h3>{title}</h3>
+      {isActive ? (
+        <p>{children}</p>
+      ) : (
+        <button onClick={() => setIsActive(true)}>Show</button>
+      )}
+    </section>
+  );
+}
+
+export default function Accordion() {
+  return (
+    <>
+      <h2>Almaty, Kazakhstan</h2>
+      <Panel title="About">
+        With a population of about 2 million, Almaty is Kazakhstan's largest
+        city. From 1929 to 1997, it was its capital city.
+      </Panel>
+      <Panel title="Etymology">
+        The name comes from <span lang="kk-KZ">алма</span>, the Kazakh word for
+        "apple" and is often translated as "full of apples". In fact, the region
+        surrounding Almaty is thought to be the ancestral home of the apple, and
+        the wild <i lang="la">Malus sieversii</i> is considered a likely
+        candidate for the ancestor of the modern domestic apple.
+      </Panel>
+    </>
+  );
+}
+```
+
+- 자식 Panel은 각자의 state로 반응하기에 서로에게 영향을 주지 않는다.
+
+> 하지만, 서로의 상태를 공유하고 하나의 Panel이 열리면 다른 Panel이 닫히게 하고 싶으면 어떻게 해야할까?  
+> 여기서 `state 끌어올리기`가 필요하다.
+
+### Step 1. 자식 컴포넌트에서 state 제거
+
+- 부모 컴포넌트에 Panel의 isActive를 제어할 수 있는 권한을 준다.
+- 부모 컴포넌트에서 자식이 가질 상태를 props로 전달한다.
+- Panel은 부모 컴포넌트로부터 받은 상태를 가지고 보여준다.
+
+### Step 2. 공통 부모에 하드 코딩된 데이터 전달하기
+
+```jsx
+// 부모 컴포넌트
+export default function Accordion() {
+  return (
+    <>
+      <h2>Almaty, Kazakhstan</h2>
+      <Panel title="About" isActive={true}>
+        With a population of about 2 million, Almaty is Kazakhstan's largest
+        city. From 1929 to 1997, it was its capital city.
+      </Panel>
+      <Panel title="Etymology" isActive={true}>
+        The name comes from <span lang="kk-KZ">алма</span>, the Kazakh word for
+        "apple" and is often translated as "full of apples". In fact, the region
+        surrounding Almaty is thought to be the ancestral home of the apple, and
+        the wild <i lang="la">Malus sieversii</i> is considered a likely
+        candidate for the ancestor of the modern domestic apple.
+      </Panel>
+    </>
+  );
+}
+```
+
+### Step 3. 공통 부모에 state 추가
+
+- 부모 컴포넌트는 특정 상황에 자식들에게 주는 상태를 변경할 수 있어야한다.
+- 특정 상황을 판단하는 state를 부모 컴포넌트에게 만들어준다.
+- 0인 경우 0번 Panel의 상태값을 변경 (특정상황)
+- 1인 경우 1번 Panel의 상태값을 변경 (특정상황)
+
+```jsx
+const [activeIndex, setActiveIndex] = useState(0);
+```
+
+- 특정상황은 자식 컴포넌트에서 알려주어야 한다.
+- 상태를 변경하는 제어권은 부모에게 있지만 특정 상황의 유무를 자식에서 발생한다.
+- 자식에게 상태를 변경하는 이벤트 핸들러를 prop으로 전달해서 알려주도록 한다.
+
+```jsx
+<>
+  <Panel isActive={activeIndex === 0} onShow={() => setActiveIndex(0)}>
+    ...
+  </Panel>
+  <Panel isActive={activeIndex === 1} onShow={() => setActiveIndex(1)}>
+    ...
+  </Panel>
+</>
+```
+
+> state 끌어올리기를 콩해 state를 공통 부모 컴포넌트에서 조정할 수 있게 된다.  
+> 자식은 부모로 부터 보여줘야하는 상태를 전달 받고 그 상태 변경을 이벤트 핸들러를 통해 부모에게 알려준다.  
+> 즉, 자식이 부모의 state를 변경할 수 있다.
+
+### 비제어 컴포넌트 vs 제어 컴포넌트
+
+- 위 예제의 부모 컴포넌트처럼 로컬 state를 가진 컴포넌트를 `비제어 컴포넌트`라고 부른다.
+- 반대로 자식 컴포넌트처럼 컴포넌트의 중요한 정보가 로컬 state가 아닌 props에 의해 구동되는 경우 `제어 컴포넌트`라고 부른다.
+
+### 각 state의 단일 진실 공급원(SSOT)
+
+- state는 여러 위치에 존재한다.
+- 각 고유한 state들에 대해 해당 state를 소유하는 컴포넌트를 선택하게 된다.
+- 모든 state가 한 곳에 있는것이 아니라 각 state마다 해당 정보를 소유하는 특정 컴포넌트가 있다는 뜻이다.
+- 컴포넌트 간에 공유하는 state를 복제하는 대신 공통으로 공유하는 부모로 끌어올려서 자식에게 전달한다.
+- 즉, 앱은 작업하면서 각 state의 위치를 파악하는 동안 state를 아래로 이동하거나 백업하는 것이다.
+
+# state 보존 및 재설정
+
+- state는 컴포넌트 간에 격리된다.
+- React는 UI트리에서 어떤 컴포넌트가 어떤 state에 속하는지를 추적한다.
+- state를 언제 보존하고 언제 초기화할지를 제어할 수 있다.
+
+## UI 트리
+
+- 브라우저는 UI를 모델링하기 위해 DOM(HTML), CSSOM(CSS), 접근성 트리를 사용한다.
+- React 또한 크리 구조를 사용하여 UI를 모댈링하고 관리한다.
+- React는 JSX로부터 UI트리를 만들고, React DOM은 해당 UI트리와 일치하도록 브라우저 DOM을 업데이트 한다.
+
+## state는 트리의 한 위치에 묶인다.
+
+- 컴포넌트에 state를 부여할 때, state가 컴포넌트 내부에 "존재"하는 것이 아닌 "유지" 된다.
+- React는 UI 트리에서 해당 컴포넌트가 어디에 위치하는지에 따라 보유하고 있는 각 state를 올바른 컴포넌트와 연결한다.
+
+```jsx
+import { useState } from "react";
+
+export default function App() {
+  const counter = <Counter />;
+  return (
+    <div>
+      {counter}
+      {counter}
+    </div>
+  );
+}
+
+function Counter() {
+  const [score, setScore] = useState(0);
+  const [hover, setHover] = useState(false);
+
+  let className = "counter";
+  if (hover) {
+    className += " hover";
+  }
+
+  return (
+    <div
+      className={className}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+    >
+      <h1>{score}</h1>
+      <button onClick={() => setScore(score + 1)}>Add one</button>
+    </div>
+  );
+}
+```
+
+- 위 예제에서 <Counter> 컴포넌트는 JSX 태그가 하나지만 두 개의 다른 위치에서 렌더링 된다.
+- <Counter> 컴포넌트에서 사용된 state 또한 각 컴포넌트에 분리되어 유지 된다.
+- **즉, 각 컴포넌트는 독립적인 score, hover state를 갖게 된다.**
+
+> 각 컴포넌트의 state는 `UI트리의 해당 위치`에서 렌더링이 유지되는한 고유의 state를 유지한다.  
+> 컴포넌트가 제거되거나 같은 위치에 다른 컴포넌트가 렌더링 되면 state를 삭제한다.
+
+## 동일한 위치의 동일한 컴포넌트는 state를 유지한다.
+
+```jsx
+import { useState } from "react";
+
+export default function App() {
+  const [isFancy, setIsFancy] = useState(false);
+  return (
+    <div>
+      {isFancy ? <Counter isFancy={true} /> : <Counter isFancy={false} />}
+      <label>
+        <input
+          type="checkbox"
+          checked={isFancy}
+          onChange={(e) => {
+            setIsFancy(e.target.checked);
+          }}
+        />
+        Use fancy styling
+      </label>
+    </div>
+  );
+}
+
+function Counter({ isFancy }) {
+  const [score, setScore] = useState(0);
+  const [hover, setHover] = useState(false);
+
+  let className = "counter";
+  if (hover) {
+    className += " hover";
+  }
+  if (isFancy) {
+    className += " fancy";
+  }
+
+  return (
+    <div
+      className={className}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+    >
+      <h1>{score}</h1>
+      <button onClick={() => setScore(score + 1)}>Add one</button>
+    </div>
+  );
+}
+```
+
+- 위 예제에서 두 개의 <Counter> 태그가 존재하지만 UI 트리에서 같은 위치에 존재한다.
+- 때문에 isFancy로 렌더링 <Counter>가 변해도 div의 첫 번째 자식으로 존재한다.
+- 이런 경우에는 state값이 유지된다.
+
+### 함정 ❗️
+
+> React에서는 JSX 마크업이 아니라 UI 트리에서의 위치가 중요하다!
+
+- JSX 태그에서 조건에 따라 동일 컴포넌트가 제거되고 다시 생성되어도 같은 위치에 렌더링된다면 state는 유지된다.
+- React는 함수에서 조던을 어디에 배치했는지 알지 못한다. 반환하는 트리만 볼 수 있을 뿐이다.
+
+이런 함점에 빠진 예시가 있는지 ❓
+
+## 동일한 위치의 다른 컴포넌트는 state를 초기화 한다.
+
+```jsx
+{
+  isPaused ? <p>See you later!</p> : <Counter />;
+}
+```
+
+- 위 예제 처럼 조건에 따라 같은 위치라도 `다른` 컴포넌트가 렌더링된다면 state는 초기화 된다.
+
+```jsx
+{
+  isFancy ? (
+    <div>
+      <Counter isFancy={true} />
+    </div>
+  ) : (
+    <section>
+      <Counter isFancy={false} />
+    </section>
+  );
+}
+```
+
+- 동일 컴포넌트라도 부모 태그가 다르면 `다른` 컴포넌트로 인식하고 state는 초기화 된다.
+
+> 리렌더링 사이에 state를 유지하려면 트리의 구조가 `일치` 해야 한다.  
+> 그렇기 때문에 컴포넌트 함수 정의를 중첩해서는 안된다.
+
+## 동일한 위치에서 state 재설정하기
+
+```jsx
+{
+  isPlayerA ? <Counter person="Taylor" /> : <Counter person="Sarah" />;
+}
+```
+
+- 위에서 확인한 것 처럼 React는 동일한 위치의 컴포넌트 state는 유지한다.
+- 만약 동일한 위치의 컴포넌트의 state를 재설정 하고 싶으면 어떻게 할까?
+
+### Option 1. 컴포넌트를 다른 위치에 렌더링하기
+
+```jsx
+{
+  isPlayerA && <Counter person="Taylor" />;
+}
+{
+  !isPlayerA && <Counter person="Sarah" />;
+}
+```
+
+- 각 Counter의 state는 DOM에서 제거될 때마다 소멸된다.
+
+### Option 2. key로 state 재설정하기
+
+```jsx
+{
+  isPlayerA ? (
+    <Counter key="Taylor" person="Taylor" />
+  ) : (
+    <Counter key="Sarah" person="Sarah" />
+  );
+}
+```
+
+- 목록을 렌더링 할때 key를 사용했는데, key는 목록에만 사용되는 것이 아니다.
+- key를 사용해 React가 컴포넌트를 구분하도록 할 수 있다.
+- key를 사용하면 부모 내의 순서로 위치를 판단하던 React에게 위치가 아닌 key로 구분하게 할 수 있다.
+
+### 키로 form 재설정하기
+
+- key로 state를 재설하는 것은 form을 다룰 때 유용하다.
+
+```jsx
+import { useState } from "react";
+import Chat from "./Chat.js";
+import ContactList from "./ContactList.js";
+
+export default function Messenger() {
+  const [to, setTo] = useState(contacts[0]);
+  return (
+    <div>
+      <ContactList
+        contacts={contacts}
+        selectedContact={to}
+        onSelect={(contact) => setTo(contact)}
+      />
+      <Chat contact={to} />
+    </div>
+  );
+}
+
+const contacts = [
+  { id: 0, name: "Taylor", email: "taylor@mail.com" },
+  { id: 1, name: "Alice", email: "alice@mail.com" },
+  { id: 2, name: "Bob", email: "bob@mail.com" },
+];
+```
+
+- 위 예제에서 <Chat>은 동일한 위치에 존재하기 때문에 부모 state `to`가 바뀌어도 내부 state 값은 유지된다.
+- 사용자의 입장에서 변경이 되는 것이 좋을 수 있다.
+
+```jsx
+import { useState } from "react";
+import Chat from "./Chat.js";
+import ContactList from "./ContactList.js";
+
+export default function Messenger() {
+  const [to, setTo] = useState(contacts[0]);
+  return (
+    <div>
+      <ContactList
+        contacts={contacts}
+        selectedContact={to}
+        onSelect={(contact) => setTo(contact)}
+      />
+      <Chat key={to.id} contact={to} />
+    </div>
+  );
+}
+```
+
+- 위 예제처럼 <Chat>에게 key값을 부여하면 동일 위치라도 내부 state값이 초기화 된다.
+
+### 제거된 컴포넌트에 대한 state 보존
+
+컴포넌트는 제거되었지만, 제거되기 전에 가지고 있던 state를 (입력 내용의 복구 등) 재사용하고 싶은 경우가 있다.
+
+- 부모 컴포넌트에게 state를 끌어올려서 보관한다.
+- localStorage등 React state 외의 방법을 사용한다.
