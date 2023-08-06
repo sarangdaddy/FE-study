@@ -1058,3 +1058,377 @@ export default function Messenger() {
 
 - 부모 컴포넌트에게 state를 끌어올려서 보관한다.
 - localStorage등 React state 외의 방법을 사용한다.
+
+# state 로직을 reducer로 추출하기
+
+`여러 개의 state 업데이트`가 `여러 이벤트 핸들어`에 `분산`되어 있는 컴포넌트는 과부하가 걸릴 수 있다.  
+이러한 경우, `reducer`라고 하는 단일 함수를 통해 컴포넌트 외부의 모든 state 업데이트 로직을 `통합`할 수 있다.
+
+이번 학습을 통해 아래 내용을 알아보자.
+
+- reducer 함수란 무엇인가
+- useState를 useReducer로 리팩토링 하는 방법
+- reducer를 사용해야 하는 경우
+- reducer를 잘 작성하는 방법
+
+## reducer로 state 로직 통합하기
+
+컴포넌트가 복잡해지면 컴포넌트의 state가 업데이트되는 다양한 경우를 한번에 파악하기 어렵다.
+
+```jsx
+import { useState } from "react";
+import AddTask from "./AddTask.js";
+import TaskList from "./TaskList.js";
+
+export default function TaskApp() {
+  const [tasks, setTasks] = useState(initialTasks);
+
+  function handleAddTask(text) {
+    setTasks([
+      ...tasks,
+      {
+        id: nextId++,
+        text: text,
+        done: false,
+      },
+    ]);
+  }
+
+  function handleChangeTask(task) {
+    setTasks(
+      tasks.map((t) => {
+        if (t.id === task.id) {
+          return task;
+        } else {
+          return t;
+        }
+      })
+    );
+  }
+
+  function handleDeleteTask(taskId) {
+    setTasks(tasks.filter((t) => t.id !== taskId));
+  }
+
+  return (
+    <>
+      <h1>Prague itinerary</h1>
+      <AddTask onAddTask={handleAddTask} />
+      <TaskList
+        tasks={tasks}
+        onChangeTask={handleChangeTask}
+        onDeleteTask={handleDeleteTask}
+      />
+    </>
+  );
+}
+
+let nextId = 3;
+const initialTasks = [
+  { id: 0, text: "Visit Kafka Museum", done: true },
+  { id: 1, text: "Watch a puppet show", done: false },
+  { id: 2, text: "Lennon Wall pic", done: false },
+];
+```
+
+- TaskApp 컴포넌트는 state에 tasks 배열을 보유한다.
+- 세 가지의 이벤트 핸들러는 task를 추가, 제거, 수정 한다.
+- 각 이벤트 핸들러는 state 업데이트를 위해 setTasks를 호출한다.
+
+> 컴포넌트가 커질수록 state를 변경하는 로직도 늘어난다.  
+> 이러한 `모든 로직을 한곳에 모으기` 위해 외부의 `reducer라고 하는 단일 함수`로 옯길 수 있다.
+
+### Reducer는 state를 관리하는 다른 방법이다.
+
+1. state를 설정하는 것에서 action들을 전달하는 것으로 변경하기
+2. reducer 함수 작성하기
+3. 컴포넌트에서 reducer 사용하기
+
+### Step 1. : state 설정을 action들의 전달로 바꾸기
+
+- 모든 state 설정 로직을 제거한다.
+- 이벤트 핸들러만 남긴다.
+  - 사용자가 “Add”를 누르면 handleAddTask(text)가 호출된다.
+  - 사용자가 task를 토글하거나 “Save”를 누르면 handleChangeTask (task)가 호출된다.
+  - 사용자가 “Delete”를 누르면 handleDeleteTask(taskId)가 호출된다.
+
+> reducer를 사용한 state 관리는 state를 직접 설정하는 것이 아니다.  
+> 이벤트 핸들어에서 `action`을 전달하여 `사용자가 방금 한 일`을 지정한다.
+
+- state 업데이트 로직은 이벤트 핸들러가 아닌 다른 곳에 존재한다.
+- 이벤트 핸들러는 `tasks를 설정해`가 아닌 `task를 추가/변경/삭제 해`라는 `action`을 전달한다.
+
+```jsx
+// 변경된 이벤트 핸들러 로직
+function handleAddTask(text) {
+  dispatch({
+    type: "added",
+    id: nextId++,
+    text: text,
+  });
+}
+
+function handleChangeTask(task) {
+  dispatch({
+    type: "changed",
+    task: task,
+  });
+}
+
+function handleDeleteTask(taskId) {
+  dispatch({
+    type: "deleted",
+    id: taskId,
+  });
+}
+```
+
+> dispatch 함수에 넣어둔 객체가 action이다.  
+> 여기에는 무슨 일이 일어났는지에 대한 최소한의 정보를 포함한다.
+
+### Step 2. : reducer 함수 작성하기
+
+- reducer 함수에 state 로직을 포함한다.
+- reducer 함수는 두 개의 매개변수를 가지는데, 하나는 `현재 state`이고 다른 하나는 `action 객체`다.
+- reducer 함수의 반홥값이 다음 state가 된다.
+
+```jsx
+function yourReducer(state, action) {
+  // return next state for React to set
+}
+```
+
+- 이벤트 핸들어에 있던 state 설정 로직을 reducer 함수로 옮긴다.
+  - 현재의 state(tasks)를 첫 번째 매개변수로 선언한다.
+  - action 객체를 두 번째 매개변수로 선언한다.
+  - 다음 state를 reducer함수에서 반환한다.
+
+```jsx
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    case "changed": {
+      return tasks.map((t) => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case "deleted": {
+      return tasks.filter((t) => t.id !== action.id);
+    }
+    default: {
+      throw Error("Unknown action: " + action.type);
+    }
+  }
+}
+```
+
+> reducer 함수는 state(tasks)를 매개변수로 갖기 때문에 `컴포넌트 밖에서 reducer 함수를 선언`할 수 있다.
+
+### Step 3. : 컴포넌트에서 reducer 사용하기
+
+- 마지막으로 컴포넌트에 tasksReducer를 연결한다.
+
+```jsx
+import { useReducer } from "react";
+
+// 기존 useState 코드
+const [tasks, setTasks] = useState(initialTasks);
+
+// reducer로 변경괸 코드
+const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+```
+
+- useReducer Hook은 두 개의 인자를 받는다.
+
+  - reducer 함수
+  - 초기 state
+
+- useReduce는 아래 내용을 반환한다.
+
+  - state값
+  - dispatch 함수
+
+```jsx
+import { useReducer } from "react";
+import AddTask from "./AddTask.js";
+import TaskList from "./TaskList.js";
+
+export default function TaskApp() {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+
+  function handleAddTask(text) {
+    dispatch({
+      type: "added",
+      id: nextId++,
+      text: text,
+    });
+  }
+
+  function handleChangeTask(task) {
+    dispatch({
+      type: "changed",
+      task: task,
+    });
+  }
+
+  function handleDeleteTask(taskId) {
+    dispatch({
+      type: "deleted",
+      id: taskId,
+    });
+  }
+
+  return (
+    <>
+      <h1>Prague itinerary</h1>
+      <AddTask onAddTask={handleAddTask} />
+      <TaskList
+        tasks={tasks}
+        onChangeTask={handleChangeTask}
+        onDeleteTask={handleDeleteTask}
+      />
+    </>
+  );
+}
+
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    case "changed": {
+      return tasks.map((t) => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case "deleted": {
+      return tasks.filter((t) => t.id !== action.id);
+    }
+    default: {
+      throw Error("Unknown action: " + action.type);
+    }
+  }
+}
+
+let nextId = 3;
+const initialTasks = [
+  { id: 0, text: "Visit Kafka Museum", done: true },
+  { id: 1, text: "Watch a puppet show", done: false },
+  { id: 2, text: "Lennon Wall pic", done: false },
+];
+```
+
+> 이벤트 핸들러는 action을 전달하여 무슨 일이 있어났는지만 지정한다.  
+> reducer 함수는 action에 대한 응답으로 state가 어떻게 변경되는지 결정한다.
+
+### useState vs useReducer
+
+- 코드 크기: 일반적으로 useState를 사용하면 미리 작성해야 하는 코드가 줄어듭니다. useReducer를 사용하면 reducer 함수 와 action을 전달하는 부분 모두 작성해야 합니다. 하지만 **많은 이벤트 핸들러가 비슷한 방식으로 state를 업데이트하는 경우** useReducer를 사용하면 코드를 줄이는 데 도움이 될 수 있습니다.
+
+- 가독성: useState로 간단한 state를 업데이트 하는 경우 가독성이 좋습니다. 그렇지만 state의 구조가 더욱 복잡해지면, 컴포넌트의 코드의 양이 부풀어 오르고 한눈에 읽기 어려워질 수 있습니다. 이 경우 **useReducer를 사용하면 업데이트 로직이 어떻게 동작 하는지와 이벤트 핸들러를 통해 무엇이 일어났는지 를 깔끔하게 분리**할 수 있습니다.
+
+- 디버깅: useState에 버그가 있는 경우, state가 어디서 잘못 설정되었는지, 그리고 왜 그런지 알기 어려울 수 있습니다. useReducer를 사용하면, **reducer에 콘솔 로그를 추가하여 모든 state 업데이트와 왜 (어떤 action으로 인해) 버그가 발생했는지 확인할 수 있습니다.** 각 action이 정확하다면, 버그가 reducer 로직 자체에 있다는 것을 알 수 있습니다. 하지만 useState를 사용할 때보다 더 많은 코드를 살펴봐야 합니다.
+
+- 테스팅: **reducer는 컴포넌트에 의존하지 않는 순수한 함수**입니다. 즉, 별도로 분리해서 내보내거나 테스트할 수 있습니다. 일반적으로 보다 현실적인 환경에서 컴포넌트를 테스트하는 것이 가장 좋지만, 복잡한 state 업데이트 로직의 경우 reducer가 특정 초기 state와 action에 대해 특정 state를 반환한다고 단언하는 것이 유용할 수 있습니다.
+
+- 개인 취향: 어떤 사람은 reducer를 좋아하고 어떤 사람은 싫어합니다. 괜찮습니다. 취향의 문제니까요. useState 와 useReducer는 언제든지 앞뒤로 변환할 수 있으며, 서로 동등합니다!
+
+> 일부 컴포넌트에서 잘못된 state 업데이트로 인해 버그가 자주 발생하고 더 많은 구조가 필요하다면 reducer를 사용하자.
+
+### reducer 작성 팁
+
+- reducer는 반드시 순수해야 한다.
+- action에는 여러 데이터가 변경되더라고 하나의 사용자 상호작용을 설명해야 한다.
+
+#### dispatch
+
+- state 개념에서는 설정자함수와 같다.
+- action 이라고 하는 객체를 `전달`하는 역할
+
+#### action
+
+- `type`이라고 하는, reducer에서 분기 처리를 할 때 필요한 문자열정보를 포함한다.
+- reducer에서 해당 명령 수행에 필요한 추가정보들을 담은 일반 객체다.
+
+#### reducer
+
+- action.type에 따라 분기를 나눈다.
+- action 객체에 담겨이는 여러 정보를 활용해서 새로운 state를 반환한다.
+- 순수함수
+
+# context로 데이터 깊숙이 전달하기
+
+React는 일반적으로 부모 컴포넌트에서 자식 컴포넌트로 props를 전달한다.  
+하지만, 중간에 여러 컴포넌트를 거쳐야 한다면 props를 장황하고 불편하게 전달해야한다.  
+context는 부모 컴포넌트에서 명시적으로 props를 전달하지 않고도 아래 트리의 컴포넌트에서 사용가능하다.
+
+## prop drilling
+
+트리 깊숙이 prop를 전달해야 한다면 prop를 필요로하는 자식 컴포넌트가 부모와 멀리 떨어지게 된다.
+
+## Context:props 전달의 대안
+
+context는 멀리 떨어져 있는 상위 트리라도 그 안에 있는 전체 트리에 일부 데이터를 제공할 수 있다.
+
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/54d95c99-d3ec-417c-99fe-3a418191b3d6/image.png" width="50%">
+
+## Step 1. : Context 만들기
+
+```jsx
+import { createContext } from "react";
+
+export const LevelContext = createContext(1);
+```
+
+## Step 2. : context 사용하기
+
+```jsx
+import { useContext } from "react";
+import { LevelContext } from "./LevelContext.js";
+
+export default function Heading({ children }) {
+  const level = useContext(LevelContext);
+  // ...
+}
+```
+
+## Step 3. : context 제공하기
+
+```jsx
+import { LevelContext } from "./LevelContext.js";
+
+export default function Section({ level, children }) {
+  return (
+    <section className="section">
+      <LevelContext.Provider value={level}>{children}</LevelContext.Provider>
+    </section>
+  );
+}
+```
+
+- `<Section>` 안에 있는 컴포넌트가 LevelContext를 요청하면 이 level을 제공하라.”고 지시한다.
+- 컴포넌트는 그 위에 있는 UI 트리에서 가장 가까운 `<LevelContext.Provider>`의 값을 사용한다.
