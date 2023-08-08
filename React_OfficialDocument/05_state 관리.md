@@ -13,6 +13,8 @@
 - “prop 드릴링” 없이 정보를 전달하는 방법
 - 앱이 성장함에 따라 state 관리를 확장하는 방법
 
+</br>
+
 # state로 입력에 반응하기
 
 - React는 UI를 조작하는 선언적인 방법을 제공한다.
@@ -299,6 +301,8 @@ function submitForm(answer) {
 - 명령형 UI 보다 길지만 덜 취약하다.
 - 모든 상호작용을 state 변화로 표현하면 새로운 시각적 상태를 도입할 수 있다.
 - 인터렉션 자체의 로직을 변경하지 않고도 각 state에 표시되어야 하는 항목을 변경할 수 있다.
+
+</br>
 
 # state 구조 선택
 
@@ -681,6 +685,8 @@ function PlaceTree({ id, parentId, placesById, onComplete }) {
 }
 ```
 
+</br>
+
 # 컴포넌트 간의 state 공유
 
 두 컴포넌트의 state가 항상 함께 변경되기를 원할 때가 있다.  
@@ -806,6 +812,8 @@ const [activeIndex, setActiveIndex] = useState(0);
 - 모든 state가 한 곳에 있는것이 아니라 각 state마다 해당 정보를 소유하는 특정 컴포넌트가 있다는 뜻이다.
 - 컴포넌트 간에 공유하는 state를 복제하는 대신 공통으로 공유하는 부모로 끌어올려서 자식에게 전달한다.
 - 즉, 앱은 작업하면서 각 state의 위치를 파악하는 동안 state를 아래로 이동하거나 백업하는 것이다.
+
+</br>
 
 # state 보존 및 재설정
 
@@ -1059,6 +1067,8 @@ export default function Messenger() {
 - 부모 컴포넌트에게 state를 끌어올려서 보관한다.
 - localStorage등 React state 외의 방법을 사용한다.
 
+</br>
+
 # state 로직을 reducer로 추출하기
 
 `여러 개의 state 업데이트`가 `여러 이벤트 핸들어`에 `분산`되어 있는 컴포넌트는 과부하가 걸릴 수 있다.  
@@ -1256,7 +1266,7 @@ const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
   - reducer 함수
   - 초기 state
 
-- useReduce는 아래 내용을 반환한다.
+- useReducer는 아래 내용을 반환한다.
 
   - state값
   - dispatch 함수
@@ -1380,6 +1390,8 @@ const initialTasks = [
 - action 객체에 담겨이는 여러 정보를 활용해서 새로운 state를 반환한다.
 - 순수함수
 
+</br>
+
 # context로 데이터 깊숙이 전달하기
 
 React는 일반적으로 부모 컴포넌트에서 자식 컴포넌트로 props를 전달한다.  
@@ -1396,7 +1408,7 @@ context는 멀리 떨어져 있는 상위 트리라도 그 안에 있는 전체 
 
 <img src="https://velog.velcdn.com/images/sarang_daddy/post/54d95c99-d3ec-417c-99fe-3a418191b3d6/image.png" width="50%">
 
-## Step 1. : Context 만들기
+### Step 1. : Context 만들기
 
 ```jsx
 import { createContext } from "react";
@@ -1404,7 +1416,7 @@ import { createContext } from "react";
 export const LevelContext = createContext(1);
 ```
 
-## Step 2. : context 사용하기
+### Step 2. : context 사용하기
 
 ```jsx
 import { useContext } from "react";
@@ -1416,7 +1428,7 @@ export default function Heading({ children }) {
 }
 ```
 
-## Step 3. : context 제공하기
+### Step 3. : context 제공하기
 
 ```jsx
 import { LevelContext } from "./LevelContext.js";
@@ -1424,11 +1436,303 @@ import { LevelContext } from "./LevelContext.js";
 export default function Section({ level, children }) {
   return (
     <section className="section">
-      <LevelContext.Provider value={level}>{children}</LevelContext.Provider>
+      <LevelContext.Provider value={level}>
+        {children} {/* Provider 하위 컴포넌트는 value의 level를 갖는다. */}
+      </LevelContext.Provider>
     </section>
   );
 }
 ```
 
-- `<Section>` 안에 있는 컴포넌트가 LevelContext를 요청하면 이 level을 제공하라.”고 지시한다.
-- 컴포넌트는 그 위에 있는 UI 트리에서 가장 가까운 `<LevelContext.Provider>`의 값을 사용한다.
+- `<Section>` 안에 있는 컴포넌트가 LevelContext를 요청하면 이 level을 제공하라”고 지시한다.
+- 하위 컴포넌트는 그 위에 있는 UI 트리에서 가장 가까운 `<LevelContext.Provider>`의 값을 사용한다.
+
+## Context 사용 사례
+
+- 테마 : 앱에서 사용자가 앱의 모양을 변경할 수 있는 경우(예: 다크 모드), 앱 상단에 context provider를 배치하고 시각적 모양을 조정해야 하는 컴포넌트에서 해당 context를 사용할 수 있습니다.
+
+- 현재 계정 : 많은 컴포넌트에서 현재 로그인한 사용자를 알아야 할 수 있습니다. 이 정보를 context에 넣으면 트리의 어느 곳에서나 편리하게 읽을 수 있습니다. 또한 일부 앱에서는 여러 계정을 동시에 조작할 수 있습니다(예: 다른 사용자로 댓글을 남기는 경우). 이러한 경우 UI의 일부를 다른 현재 계정 값으로 중첩된 provider로 감싸는 것이 편리할 수 있습니다.
+
+- 라우팅 : 대부분의 라우팅 솔루션은 내부적으로 context를 사용하여 현재 경로를 유지합니다. 이것이 모든 링크가 활성 상태인지 아닌지를 “아는” 방식입니다. 자체 라우터를 구축하는 경우에도 이러한 방식을 사용할 수 있습니다.
+
+- state 관리 : 앱이 성장함에 따라 앱 상단에 많은 state가 가까워질 수 있습니다. 아래에 있는 많은 멀리 떨어진 컴포넌트에서 이를 변경하고 싶을 수 있습니다. context와 함께 reducer를 사용하여 복잡한 state를 관리하고 번거로움 없이 멀리 떨어진 컴포넌트에 전달하는 것이 일반적입니다.
+
+</br>
+
+# Reducer와 Context로 확장하기
+
+Reducer를 사용하면 컴포넌트의 state 업데이트 로직을 통합할 수 있다.  
+Context를 사용하면 다른 컴포넌트들에 정보를 전달할 수 있다.
+
+> 이 둘을 함께 사용하면 복잡한 화면의 state를 관리할 수 있다.
+
+- Reducer를 사용하면 이벤트 핸들러를 간결하고 명확하게 만들 수 있다.
+- 그러나 현재 state와 dispatch 함수는 최상위 컴포넌트에서만 사용이 가능하다.
+- 다른 컴포넌트들에서 state를 읽고 변경하려면 prop을 통해 state와 이벤트 핸들러를 전달해야한다.
+
+## Reducer와 Context 결합 방법
+
+1. Context를 생성한다.
+2. State와 dispatch 함수를 context에 넣는다.
+3. 트리 안에서 context를 사용한다.
+
+### Step 1. : Context 생성하기
+
+- useReducer 훅은 현재 tasks와 업데이트할 수 있는 dispatch 함수를 반환한다.
+
+```jsx
+const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+```
+
+- 트리를 통해 전달하려면, 두 개의 별개의 context를 생성해햐 한다.
+- TasksContext는 현재 tasks리스트를 제공한다.
+- TasksDispatchContext는 컴포넌트에서 action을 dispatch하는 함수를 제공한다.
+
+```jsx
+import { createContext } from "react";
+
+export const TasksContext = createContext(null);
+export const TasksDispatchContext = createContext(null);
+```
+
+### Step 2. : State와 dispatch 함수를 context에 넣기
+
+- 이제 TaskBoard 컴포넌트에서 두 context를 모두 불러올 수 있다.
+- useReducer()를 통해 반환된 tasks와 dispatch를 받고 아래 트리 전체에 전달한다.
+
+```jsx
+import { TasksContext, TasksDispatchContext } from "./TasksContext.js";
+
+export default function TaskApp() {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+  // ...
+  return (
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        <AddTask onAddTask={handleAddTask} />
+        <TaskList
+          tasks={tasks}
+          onChangeTask={handleChangeTask}
+          onDeleteTask={handleDeleteTask}
+        />
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
+  );
+}
+```
+
+### Step 3. : 트리 안에서 context 사용하기 (prop 지우기)
+
+- 이제 tasks 리스트나 이벤트 핸들러를 트리 아래로 전달할 필요가 없다.
+
+```jsx
+<TasksContext.Provider value={tasks}>
+  <TasksDispatchContext.Provider value={dispatch}>
+    <h1>Day off in Kyoto</h1>
+    <AddTask />
+    <TaskList />
+  </TasksDispatchContext.Provider>
+</TasksContext.Provider>
+```
+
+- 하위 컴포넌트에서는 context로 읽을 수 있다.
+
+```jsx
+export default function TaskList() {
+  const tasks = useContext(TasksContext);
+  // ...
+```
+
+```jsx
+export default function AddTask() {
+  const [text, setText] = useState('');
+  const dispatch = useContext(TasksDispatchContext);
+  // ...
+  return (
+    // ...
+    <button onClick={() => {
+      setText('');
+      dispatch({
+        type: 'added',
+        id: nextId++,
+        text: text,
+      });
+    }}>Add</button>
+    // ...
+```
+
+> - State와 state를 관리하는 useReducer는 최상위 컴포넌트에 존재한다.
+> - tasks와 dispatch는 하위 컴포넌트 어디서나 context로 불러와서 사용 가능하다.
+
+### 하나의 파일로 합치기
+
+reducer와 context를 하나의 파일로 합치고 TasksProvider 컴포넌트로 선언한다.
+
+- Reducer로 state를 관리한다.
+- 두 context를 모두 자식 컴포넌트에 제공한다.
+- children을 prop으로 받기 때문에 JSX를 전달할 수 있다.
+
+```jsx
+import { createContext, useReducer } from "react";
+
+export const TasksContext = createContext(null);
+export const TasksDispatchContext = createContext(null);
+
+export function TasksProvider({ children }) {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+
+  return (
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        {children}
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
+  );
+}
+
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    case "changed": {
+      return tasks.map((t) => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case "deleted": {
+      return tasks.filter((t) => t.id !== action.id);
+    }
+    default: {
+      throw Error("Unknown action: " + action.type);
+    }
+  }
+}
+
+const initialTasks = [
+  { id: 0, text: "Philosopher’s Path", done: true },
+  { id: 1, text: "Visit the temple", done: false },
+  { id: 2, text: "Drink matcha", done: false },
+];
+```
+
+- TasksProvider 컴포넌트로 깔끔해진 App 컴포넌트
+
+```jsx
+import AddTask from "./AddTask.js";
+import TaskList from "./TaskList.js";
+import { TasksProvider } from "./TasksContext.js";
+
+export default function TaskApp() {
+  return (
+    <TasksProvider>
+      <h1>Day off in Kyoto</h1>
+      <AddTask />
+      <TaskList />
+    </TasksProvider>
+  );
+}
+```
+
+- TasksProvider컴포넌트에서 context를 사용하기 위한 use함수(커스텀훅) 을 만들 수 있다.
+
+```jsx
+export function useTasks() {
+  return useContext(TasksContext);
+}
+
+export function useTasksDispatch() {
+  return useContext(TasksDispatchContext);
+}
+```
+
+- 하위 컴포넌트에서는 context를 불러올 필요없이 use함수로 context를 불러오고 변경할 수 있다.
+
+```jsx
+import { useState } from "react";
+import { useTasks, useTasksDispatch } from "./TasksContext.js";
+
+export default function TaskList() {
+  const tasks = useTasks(); // 현재 tasks를 가져온다.
+  return (
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          <Task task={task} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Task({ task }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const dispatch = useTasksDispatch(); // tasks를 변경한다.
+  let taskContent;
+  if (isEditing) {
+    taskContent = (
+      <>
+        <input
+          value={task.text}
+          onChange={(e) => {
+            dispatch({
+              type: "changed",
+              task: {
+                ...task,
+                text: e.target.value,
+              },
+            });
+          }}
+        />
+        <button onClick={() => setIsEditing(false)}>Save</button>
+      </>
+    );
+  } else {
+    taskContent = (
+      <>
+        {task.text}
+        <button onClick={() => setIsEditing(true)}>Edit</button>
+      </>
+    );
+  }
+  return (
+    <label>
+      <input
+        type="checkbox"
+        checked={task.done}
+        onChange={(e) => {
+          dispatch({
+            type: "changed",
+            task: {
+              ...task,
+              done: e.target.checked,
+            },
+          });
+        }}
+      />
+      {taskContent}
+      <button
+        onClick={() => {
+          dispatch({
+            type: "deleted",
+            id: task.id,
+          });
+        }}
+      >
+        Delete
+      </button>
+    </label>
+  );
+}
+```
