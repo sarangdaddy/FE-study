@@ -9,13 +9,13 @@
 ## setTimeout의 반환값의 타입
 
 ```jsx
-  let timeoutID: ReturnType<typeof setTimeout> | null = null;
+  const timeoutID = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleSend() {
+  const handleSend = () => {
     setIsSending(true);
-    timeoutID = setTimeout(() => {
+    timeoutID.current = setTimeout(() => {
       alert('Sent!');
       setIsSending(false);
     }, 3000);
-  }
+  };
 ```
