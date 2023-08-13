@@ -12,7 +12,8 @@
 
 ```jsx
 const [isPlaying, setIsPlaying] = useState(false);
-const ref = (useRef < HTMLVideoElement) | (null > null);
+// prettier-ignore
+const ref = useRef<HTMLVideoElement | null>(null);
 
 function handleClick() {
   const nextIsPlaying = !isPlaying;
