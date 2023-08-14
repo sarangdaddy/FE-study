@@ -11,3 +11,9 @@
 <img src="https://velog.velcdn.com/images/sarang_daddy/post/fc60f10a-9fbf-46ff-a619-81775164bad6/image.png" width="30%"/>
 
 👨‍🎓 [학습 자료 보러가기](https://github.com/sarangdaddy/FE-study/tree/main/React_OfficialDocument)
+
+## <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white"/>
+
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/391488da-3b37-4f6f-a52c-5f9c3acd486b/image.png" width="30%"/>
+
+👨‍🎓 [학습 자료 보러가기](https://github.com/sarangdaddy/FE-study/tree/main/typescript_with_react)
