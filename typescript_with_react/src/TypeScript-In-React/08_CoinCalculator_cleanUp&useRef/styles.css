@@ -1,0 +1,12 @@
+.InputContainer {
+  display: flex;
+  gap: 4px;
+}
+
+.CoinNumber {
+  color: red;
+}
+
+.InputPrice {
+  width: 200px;
+}
