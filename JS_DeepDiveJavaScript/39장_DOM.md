@@ -764,3 +764,348 @@ $fruits.appendChild($li);
   </script>
 </html>
 ```
+
+## 39.7 어트리뷰트
+
+### 39.7.1 어트리뷰트 노드와 attributes 프로퍼티
+
+- HTML 요소는 여러개의 어트리뷰트(속성)을 가질 수 있다.
+- 속성은 HTML 요소의 동작을 제어하기 위한 정보를 제공한다.
+- 속성은 모든 요소에 사용할 수 있는 속성과 특정 요소에만 사용가능한 속성으로 구성된다.
+- Element.prototype.attributes 프로퍼티로 요소 노드의 속성 노드의 참조가 담긴 NamedNodeMap 객체를 반환한다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" type="text" value="ungmo2" />
+    <script>
+      // 요소 노드의 attribute 프로퍼티는 요소 노드의 모든 어트리뷰트 노드의 참조가 담긴 NamedNodeMap 객체를 반환한다.
+      const { attributes } = document.getElementById("user");
+      console.log(attributes);
+      // NamedNodeMap {0: id, 1: type, 2: value, id: id, type: type, value: value, length: 3}
+
+      // 어트리뷰트 값 취득
+      console.log(attributes.id.value); // user
+      console.log(attributes.type.value); // text
+      console.log(attributes.value.value); // ungmo2
+    </script>
+  </body>
+</html>
+```
+
+### 39.7.2 HTML 어트리뷰트 조작
+
+- `Element.prototype.getAttribute` 메서드로 요소 노드에서 HTML 어트리뷰트 값을 취득할 수 있다.
+- `Element.prototype.getAttribute` 메서드로 요소 노드의 HTML 어트리뷰트 값을 변경할 수 있다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" type="text" value="ungmo2" />
+    <script>
+      const $input = document.getElementById("user");
+
+      // value 어트리뷰트 값을 취득
+      const inputValue = $input.getAttribute("value");
+      console.log(inputValue); // ungmo2
+
+      // value 어트리뷰트 값을 변경
+      $input.setAttribute("value", "foo");
+      console.log($input.getAttribute("value")); // foo
+    </script>
+  </body>
+</html>
+```
+
+- `Element.prototype.hasAttribute`메서드로 속성 보유 여부를 확인할 수 있다.
+- `Element.prototype.removeAttribute`메서드로 속성을 삭제할 수 있다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" type="text" value="ungmo2" />
+    <script>
+      const $input = document.getElementById("user");
+
+      // value 어트리뷰트의 존재 확인
+      if ($input.hasAttribute("value")) {
+        // value 어트리뷰트 삭제
+        $input.removeAttribute("value");
+      }
+
+      // value 어트리뷰트가 삭제되었다.
+      console.log($input.hasAttribute("value")); // false
+    </script>
+  </body>
+</html>
+```
+
+### 39.7.3 HTML 어트리뷰트 vs DOM 프로퍼티
+
+- 요소 노드 객체에는 HTML 어트리뷰트에 대응하는 프로퍼티인 DOM 프로퍼티가 존재한다.
+- DOM 프로퍼티들은 HTML 어트리뷰트 값을 초기값으로 가진다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" type="text" value="ungmo2" />
+    <script>
+      const $input = document.getElementById("user");
+
+      // attributes 프로퍼티에 저장된 value 어트리뷰트 값
+      console.log($input.getAttribute("value")); // ungmo2
+
+      // 요소 노드의 value 프로퍼티에 저장된 value 어트리뷰트 값
+      console.log($input.value); // ungmo2
+    </script>
+  </body>
+</html>
+```
+
+- 사용자 입력으로 변하는 상태는 DOM 프로퍼티 값이 변경된 것이다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" type="text" value="ungmo2" />
+    <script>
+      const $input = document.getElementById("user");
+
+      // 사용자가 input 요소의 입력 필드에 값을 입력할 때마다 input 요소 노드의
+      // value 프로퍼티 값, 즉 최신 상태 값을 취득한다. value 프로퍼티 값은 사용자의 입력에
+      // 의해 동적으로 변경된다.
+      $input.oninput = () => {
+        console.log("value 프로퍼티 값", $input.value);
+      };
+
+      // getAttribute 메서드로 취득한 HTML 어트리뷰트 값, 즉 초기 상태 값은 변하지 않고 유지된다.
+      console.log("value 어트리뷰트 값", $input.getAttribute("value"));
+    </script>
+  </body>
+</html>
+```
+
+> 요소 노드는 2개의 상태. 초기 상태와 최신 상태를 관리해야 한다.  
+> 초기 상태는 어트리뷰트 노드가 관리하고 최신 상태는 DOM 프로퍼티가 관리한다.
+
+```
+📝 HTML 어트리뷰트와 DOM 프로퍼티
+어트리뷰트(Attributes): HTML 마크업에서 요소에 정의되는 초기 상태를 나타낸다.
+예를 들어, <input type="text" value="initial">에서 type과 value는 어트리뷰트다.
+
+DOM 프로퍼티(Properties): 브라우저가 HTML을 파싱한 후에 생성되는 DOM 객체에서 해당 요소의 상태를 나타낸다.
+이 프로퍼티는 JavaScript를 통해 변경될 수 있다.
+```
+
+```jsx
+const [toDo, setToDo] = useState("초기값");
+const onChange = (e) => setToDo(e.target.value);
+
+// input 요소에서 value가 초기값을 가질수 있는 이유
+<input onChange={onChange} value={toDo} type="text"></input>;
+```
+
+### 39.7.4 data 어트리뷰트와 dataset 프로퍼티
+
+- data 어트리뷰트와 dataset 프로퍼티를 사용하면 HTML 요소의 어트리뷰트와 자바스크립트 간에 데이터틀 교환할 수 있다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <ul class="users">
+      <li id="1" data-user-id="7621" data-role="admin">Lee</li>
+      <li id="2" data-user-id="9524" data-role="subscriber">Kim</li>
+    </ul>
+    <script>
+      const users = [...document.querySelector(".users").children];
+
+      // user-id가 '7621'인 요소 노드를 취득한다.
+      const user = users.find((user) => user.dataset.userId === "7621");
+      // user-id가 '7621'인 요소 노드에서 data-role의 값을 취득한다.
+      console.log(user.dataset.role); // "admin"
+
+      // user-id가 '7621'인 요소 노드의 data-role 값을 변경한다.
+      user.dataset.role = "subscriber";
+      // dataset 프로퍼티는 DOMStringMap 객체를 반환한다.
+      console.log(user.dataset); // DOMStringMap {userId: "7621", role: "subscriber"}
+    </script>
+  </body>
+</html>
+```
+
+## 39.8 스타일
+
+### 39.8.1 인라인 스타일 조작
+
+- `HTMLElement.prototype.style` 프로퍼티는 setter와 getter 모두 존재하는 접근자 프로퍼티로서 요소 노드의 **인라인 스타일**을 취득하거나 추가 또는 변경한다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <div style="color: red">Hello World</div>
+    <script>
+      const $div = document.querySelector("div");
+
+      // 인라인 스타일 취득
+      console.log($div.style); // CSSStyleDeclaration { 0: "color", ... }
+
+      // 인라인 스타일 변경
+      $div.style.color = "blue";
+
+      // 인라인 스타일 추가
+      $div.style.width = "100px";
+      $div.style.height = "100px";
+      $div.style.backgroundColor = "yellow";
+    </script>
+  </body>
+</html>
+```
+
+### 39.8.2 클래스 조작
+
+- `.`으로 시작하는 클래스 선택자를 사용하여 class 어트리뷰트 값을 변경하여 HTML 요소의 스타일을 변경할 수 있다.
+
+#### className을 사용하여 스타일 변경
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .box {
+        width: 100px;
+        height: 100px;
+        background-color: antiquewhite;
+      }
+      .red {
+        color: red;
+      }
+      .blue {
+        color: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box red">Hello World</div>
+    <script>
+      const $box = document.querySelector(".box");
+
+      // .box 요소의 class 어트리뷰트 값을 취득
+      console.log($box.className); // 'box red'
+
+      // .box 요소의 class 어트리뷰트 값 중에서 'red'만 'blue'로 변경
+      $box.className = $box.className.replace("red", "blue");
+    </script>
+  </body>
+</html>
+```
+
+- className 프로퍼티는 문자열을 반환하므로 공백으로 구분된 여러 개의 클래스를 반환하는 경우 다루기가 불편하다.
+
+#### classList을 사용하여 스타일 변경
+
+- `Element.prototype.classList` 프로퍼티는 class 어트리뷰트의 정보를 담은 DOMTokenList 객체를 반환한다.
+- DOMTokenList 객체는 유요한 메서드를 제공한다.
+
+1. add(...className)
+
+- add 메서드는 인수로 전달한 1개 이상의 문자열을 class 어트리뷰트 값으로 추가한다.
+
+2. remove(...className)
+
+- remove 메서드는 인수로 전달한 1개 이상의 문자열과 일치하는 클래스를 class 어트리뷰트에서 삭제한다.
+
+3. item(index)
+
+- item 메서드는 인수로 전달한 index에 해당하는 클래스를 class 어트리뷰트에서 반환한다.
+
+4. contains(className)
+
+- contains 메서드는 인수로 전달한 문자열과 일치하는 클래스가 class 어트리뷰트에 포함되어 있는지 확인한다.
+
+5. replace(oldClassName, newClassName)
+
+- replace 메서드는 class 어트리뷰트에서 첫 번째 인수로 전달한 문자열을 두 번째 인수로 전달한 문자열로 변경한다.
+
+6. toggle(className[, force])
+
+- toggle 메서드는 class 어트리뷰트에 인수로 전달한 문자열과 일치하는 클래스가 존재하면 제거하고, 존재하지 않으면 추가한다.
+
+### 39.8.3 요소에 적용되어 있는 CSS 스타일 참조
+
+- 앞서 확인한 style 프로퍼티는 인라인 스타일만 반환한다.
+- 때문에 클래스를 적용한 스타일이나 상속을 통해 적용된 스타일은 style 프로퍼티로 참조할 수 없다.
+- HTML 요소에 적용되어 있는 모든 CSS 스타일을 참조해야 할 경우 `getComputedStyle`메서드를 사용한다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        color: red;
+      }
+      .box {
+        width: 100px;
+        height: 50px;
+        background-color: cornsilk;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">Box</div>
+    <script>
+      const $box = document.querySelector(".box");
+
+      // .box 요소에 적용된 모든 CSS 스타일을 담고 있는 CSSStyleDeclaration 객체를 취득
+      const computedStyle = window.getComputedStyle($box);
+      console.log(computedStyle); // CSSStyleDeclaration
+
+      // 임베딩 스타일
+      console.log(computedStyle.width); // 100px
+      console.log(computedStyle.height); // 50px
+      console.log(computedStyle.backgroundColor); // rgb(255, 248, 220)
+      console.log(computedStyle.border); // 1px solid rgb(0, 0, 0)
+
+      // 상속 스타일(body -> .box)
+      console.log(computedStyle.color); // rgb(255, 0, 0)
+
+      // 기본 스타일
+      console.log(computedStyle.display); // block
+    </script>
+  </body>
+</html>
+```
+
+- `getComputedStyle`메서드의 두 번째 인수로 `:after`, `:before`같은 의사 요소를 지정하는 문자열을 전달할 수 있다.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .box:before {
+        content: "Hello";
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">Box</div>
+    <script>
+      const $box = document.querySelector(".box");
+
+      // 의사 요소 :before의 스타일을 취득한다.
+      const computedStyle = window.getComputedStyle($box, ":before");
+      console.log(computedStyle.content); // "Hello"
+    </script>
+  </body>
+</html>
+```
