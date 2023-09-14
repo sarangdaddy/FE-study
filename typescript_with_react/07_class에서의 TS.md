@@ -126,7 +126,7 @@ console.log(sarangDaddy.getFullName()); // 'getFullName' 속성은 보호된 속
 
 - `User`클래스 내부와 그 하위 클래스 `Player` 내부에서의 사용은 허용되었다.
 - 하지만 getFullName 메서드를 사용하는것은 Player의 인스턴스 sarangDaddy다.
-- Player의 인스턴스에게 사용을 주기위해서는 Plater 내부에서 접근해야 한다.
+- Player의 인스턴스에게 사용을 주기위해서는 Player 내부에서 접근해야 한다.
 
 ```ts
 abstract class User {
@@ -208,4 +208,49 @@ class Player extends User {
 
 const sarangDaddy = new Player('sarangDaddy', 'Kim', 'SD');
 console.log(sarangDaddy.getNickName()); // SD
+```
+
+## TS를 사용한 class로 사전 만들어보기
+
+```ts
+type Words = {
+  [key: string]: string;
+};
+
+// 사전 클래스에서는 내부 words 객체를 상태로 가진다.
+class Dict {
+  private words: Words;
+  constructor() {
+    this.words = {};
+  }
+
+  // 사전에 add메서드로 words 객체가 추가된다. word 값은 Word 클래스 상태다.
+  // word는 class Word로 타입을 지정해 줄 수 있다.
+  add(word: Word) {
+    if (this.words[word.term] === undefined) {
+      this.words[word.term] = word.def;
+    }
+  }
+
+  def(term: string) {
+    return this.words[term];
+  }
+}
+
+class Word {
+  constructor(
+    public term: string,
+    public def: string,
+  ) {}
+}
+
+const kimchi = new Word('kimchi', '한국요리');
+console.log(kimchi); // Word { term: 'kimchi', def: '한국요리' }
+
+const dict = new Dict();
+console.log(dict); // Dict { words: {} }
+
+dict.add(kimchi);
+console.log(dict); // Dict { words: { kimchi: '한국요리' } }
+console.log(dict.def('kimchi')); // 한국요리
 ```
