@@ -1,5 +1,5 @@
 <p align="center">
-<img src="" width="50%"/>
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/81255303-4850-4604-b504-b0a39075b6cb/image.jpeg" width="50%"/>
 </p>
 
 # 🚀 Frontend 면접 스터디
