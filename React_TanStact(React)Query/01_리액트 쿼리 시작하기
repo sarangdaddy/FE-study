@@ -1,0 +1,130 @@
+# 리액트 쿼리
+
+## 왜 리액트 쿼리?
+
+- 리액트 쿼리는 `서버 상태`관리를 도와주는 라이브러리다.
+- 리액트 쿼리로 `서버 상태 가져오기`, `캐싱`, `동기화 및 업데이트`를 보다 쉽게 관리할 수 있다.
+- 기존의 상태 관리 라이브러리 `redux`, `mobX`에서도 서버 상태 관리가 가능했지만, 클라이언트 상태 관리에만 더욱 적합하다.
+- 클라이언트 상태와 서버 상태를 분리하여 서버 상태 관리는 리액트 쿼리에서 관리함이 좋다.
+
+## 리액트 쿼리가 도와주는 기능
+
+- 데이터 캐싱
+- 동일한 데이터에 대한 중복 요청을 단일 요청으로 통합
+- 오래된 데이터 자동 업데이트
+- 데이터의 유효성 판단
+- 페이지네이션 및 데이터 지연 로드와 같은 성능 최적화
+- 서버 상태의 메모리 및 가비지 수집 관리
+- 구조 공유를 사용하여 쿼리 결과를 메모화
+
+## 리액트 쿼리 기본 코드 살펴보기
+
+```tsx
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Example />
+    </QueryClientProvider>
+  )
+}
+
+function Example() {
+  const { isPending, error, data } = useQuery({
+    queryKey: ['repoData'],
+    queryFn: () =>
+      fetch('https://api.github.com/repos/TanStack/query').then(
+        (res) => res.json(),
+      ),
+  })
+
+  if (isPending) return 'Loading...'
+
+  if (error) return 'An error has occurred: ' + error.message
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.description}</p>
+      <strong>👀 {data.subscribers_count}</strong>{' '}
+      <strong>✨ {data.stargazers_count}</strong>{' '}
+      <strong>🍴 {data.forks_count}</strong>
+    </div>
+  )
+}
+```
+
+### 1. 기본 설정
+
+```tsx
+// v4
+import { QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      // ...
+    },
+  },
+});
+```
+
+- QueryClient를 사용하여 캐시와 상호 작용할 수 있다.
+- QueryClient에서 모든 `query` 또는 `mutation`에 기본 옵션을 추가할 수 있다.
+
+### 2. 전역에 QueryClient 사용하도록 설정
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({ /* options */});
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Example />
+    </QueryClientProvider>
+  )
+}
+```
+
+- 최상단 앱을 `QueryClientProvider로` 감싸준다.
+- QueryClientProvider에 사용할 QueryClient 인스턴스를 연결한다.
+
+### 3. devtools 설정
+
+```bash
+$ npm i @tanstack/react-query-devtools
+# or
+$ pnpm add @tanstack/react-query-devtools
+# or
+$ yarn add @tanstack/react-query-devtools
+```
+
+- 우선 설치가 필요하다.
+
+```tsx
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {/* The rest of your application */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
+}
+```
+
+- 리액트 쿼리는 전용 devtools를 제공한다.
+- devtools를 사용하면 리액트 쿼리 내부 동작을 시각화하여 보여준다.
+- devtools는 기본값으로 process.env.NODE_ENV === 'development' 인 경우에만 실행된다.
+- 따라서 배포 시에 제거해줄 필요가 없다.
