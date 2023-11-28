@@ -6,6 +6,10 @@
 
 👨‍🎓 [학습 자료 보러가기](https://github.com/sarangdaddy/FE-study/tree/main/JS_DeepDiveJavaScript)
 
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/f7eba04d-c765-4141-b43a-e0e615acd322/image.jpeg" width="30%"/>
+
+👨‍🎓 [학습 자료 보러가기](https://github.com/sarangdaddy/FE-study/tree/main/FE_InterviewStudy)
+
 ## <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=white"/>
 
 <img src="https://velog.velcdn.com/images/sarang_daddy/post/fc60f10a-9fbf-46ff-a619-81775164bad6/image.png" width="30%"/>
