@@ -5,7 +5,7 @@
 # 코드스쿼드 Deep Dive 스터디
 
 [Git 저장소](https://github.com/codesquad2023-fe-study/FE-DeepDive)  
-[Notion 저장소](https://hoonding.notion.site/hoonding/Deep-Dive-d7baf849660f49a080301a6cbe6d44ae)
+[Notion 저장소](https://hoonding.notion.site/ad321225a35743ff8e94881f2702a8cb?pvs=4)
 
 > **NOTICE**
 
