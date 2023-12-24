@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://velog.velcdn.com/images/sarang_daddy/post/e89371ec-6829-4e79-ac3b-39df7b91ac23/image.png" width="80%"/>
+<img src="https://velog.velcdn.com/images/sarang_daddy/post/e89371ec-6829-4e79-ac3b-39df7b91ac23/image.png" width="50%"/>
 </p>
 
 # 우아한 타입스크립트 스터디
